@@ -1,0 +1,7 @@
+CREATE TABLE users(
+    joined_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
+    id UUID PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE,
+    is_admin BOOLEAN DEFAULT false,
+    password_hash TEXT NOT NULL,
+)

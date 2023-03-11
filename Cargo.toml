@@ -1,0 +1,13 @@
+[package]
+edition = "2021"
+name = "bokeh"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = "0.6.10"
+diesel = {version = "2.0.0", features = ["postgres"]}
+dotenvy = "0.15"
+mime_guess = "2.0.4"
+tokio = {version = "1.26.0", features = ["full"]}
