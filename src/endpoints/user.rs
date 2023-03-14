@@ -9,6 +9,7 @@ use diesel::{insert_into, prelude::*};
 use diesel_async::RunQueryDsl;
 use rand::distributions::{Alphanumeric, DistString};
 use serde::Deserialize;
+use tracing::debug;
 use uuid;
 
 use crate::{
@@ -47,6 +48,8 @@ pub async fn register_user(
         username: &data.username,
         access_key: &user_access_key,
     };
+
+    debug!("registering user with username {}", &data.username);
 
     insert_into(users)
         .values(&data)
@@ -105,6 +108,11 @@ pub async fn delete_user_by_id(
         ));
     }
 
+    debug!(
+        "admin {} initiated a drop of user {} and their media from the database.",
+        &self_user.id, &uid
+    );
+
     // first delete the users media, then delete the user
     diesel::delete(media::table.filter(media::user_id.eq(&uid)))
         .execute(&mut conn)
@@ -145,6 +153,11 @@ pub async fn delete_user_self(
         ));
     }
     let user = matched_user.unwrap();
+
+    debug!(
+        "dropping user {} and their media from the database. (self-imposed)",
+        &user.id
+    );
 
     // first delete the users media, then delete the user
     diesel::delete(media::table.filter(media::user_id.eq(&user.id)))

@@ -2,12 +2,12 @@ use axum::{
     body::{Bytes, Full},
     extract::{Multipart, Path, State},
     headers::{authorization::Bearer, Authorization},
-    response,
-    Json, TypedHeader,
+    response, Json, TypedHeader,
 };
 use diesel::{insert_into, prelude::*};
 use diesel_async::RunQueryDsl;
 use rand::distributions::{Alphanumeric, DistString};
+use tracing::debug;
 
 use crate::{
     models::{CreateMedia, Media, User},
@@ -37,6 +37,7 @@ pub async fn upload(
             "authorization key is invalid.".to_owned(),
         ));
     }
+    let user = matched_user.unwrap();
 
     while let Some(field) = multipart.next_field().await.unwrap() {
         if let Some("file") = field.name() {
@@ -55,10 +56,17 @@ pub async fn upload(
             let extension = mime.extension();
             let formatted_name = format!("{file_name}.{extension}");
 
+            debug!(
+                "user {} created new media with filename {} and with bytes len {}",
+                &user.id,
+                &formatted_name,
+                content.len()
+            );
+
             let data = CreateMedia {
                 content: content.into(),
                 file_name: &formatted_name,
-                user_id: matched_user.as_ref().unwrap().id,
+                user_id: user.id,
                 mime_type: mime.mime_type(),
             };
 
@@ -103,6 +111,7 @@ pub async fn get_image(
     }
 
     let image = image.unwrap();
+    debug!("media {} was viewed.", &image.file_name);
     Ok(response::Response::builder()
         .header("Content-Type", image.mime_type)
         .body(Full::from(image.content))
@@ -150,6 +159,11 @@ pub async fn delete_image(
             "the uploader id does not match your id and you are not an admin.".to_owned(),
         ));
     }
+
+    debug!(
+        "image {} was deleted by user {}",
+        &image.file_name, &user.id
+    );
 
     diesel::delete(media::table.filter(media::file_name.eq(&name)))
         .execute(&mut conn)
