@@ -15,7 +15,7 @@ use uuid;
 use crate::{
     models::{CreateUser, User},
     schema::media,
-    utils::{ConnectionPool, Error, Response},
+    utils::{authorize_and_return_user, ConnectionPool, Error, Response},
 };
 
 /// This file holds the endpoints for /user/:x.
@@ -74,19 +74,7 @@ pub async fn delete_user_by_id(
         .await
         .map_err(|err| Error::InternalError(err.to_string()))?;
 
-    let matched_user: Option<User> = users
-        .filter(access_key.eq(auth.0.token()))
-        .first(&mut conn)
-        .await
-        .optional()
-        .map_err(|err| Error::InternalError(err.to_string()))?;
-
-    if matched_user.is_none() {
-        return Err(Error::Unauthorized(
-            "authorization key is invalid.".to_owned(),
-        ));
-    }
-    let self_user = matched_user.unwrap();
+    let self_user = authorize_and_return_user(&mut conn, auth.0.token()).await?;
     if !self_user.is_admin {
         return Err(Error::Unauthorized("you must be an admin to use this endpoint, if you are a user trying to delete your account use `/user/delete`.".to_owned()));
     }
@@ -140,19 +128,7 @@ pub async fn delete_user_self(
         .await
         .map_err(|err| Error::InternalError(err.to_string()))?;
 
-    let matched_user: Option<User> = users
-        .filter(access_key.eq(auth.0.token()))
-        .first(&mut conn)
-        .await
-        .optional()
-        .map_err(|err| Error::InternalError(err.to_string()))?;
-
-    if matched_user.is_none() {
-        return Err(Error::Unauthorized(
-            "authorization key is invalid.".to_owned(),
-        ));
-    }
-    let user = matched_user.unwrap();
+    let user = authorize_and_return_user(&mut conn, auth.0.token()).await?;
 
     debug!(
         "dropping user {} and their media from the database. (self-imposed)",

@@ -3,8 +3,11 @@ use axum::{
     response::{self, IntoResponse},
     Json,
 };
-use diesel_async::{pooled_connection::bb8::Pool, AsyncPgConnection};
+use diesel::prelude::*;
+use diesel_async::{pooled_connection::bb8::Pool, AsyncPgConnection, RunQueryDsl};
 use serde::Serialize;
+
+use crate::models::User;
 
 pub type ConnectionPool = Pool<AsyncPgConnection>;
 
@@ -29,14 +32,32 @@ impl IntoResponse for Error {
             Error::InternalError(s) => {
                 (StatusCode::INTERNAL_SERVER_ERROR, Json(Response { msg: s }))
             }
-            Error::Unauthorized(s) => (
-                StatusCode::UNAUTHORIZED,
-                Json(Response {
-                    msg: s,
-                }),
-            ),
+            Error::Unauthorized(s) => (StatusCode::UNAUTHORIZED, Json(Response { msg: s })),
         }
         .into_response()
+    }
+}
+
+/// Authorizes the user and returns them if they are authorized.
+/// If they are not, then ``Error::Unauthorized`` will be returned.
+pub async fn authorize_and_return_user(
+    pool: &mut AsyncPgConnection,
+    token: &str,
+) -> Result<User, Error> {
+    use crate::schema::users::dsl::*;
+
+    let user: Option<User> = users
+        .filter(access_key.eq(&token))
+        .first(pool)
+        .await
+        .optional()
+        .map_err(|err| Error::InternalError(err.to_string()))?;
+
+    match user {
+        Some(u) => Ok(u),
+        None => Err(Error::Unauthorized(
+            "authorization key is invalid.".to_owned(),
+        )),
     }
 }
 

@@ -54,6 +54,8 @@ async fn main() {
             delete(endpoints::user::delete_user_by_id),
         )
         .route("/user/delete/", delete(endpoints::user::delete_user_self))
+        .route("/admin/users", get(endpoints::admin::get_all_users))
+        .route("/admin/media", get(endpoints::admin::get_all_media_info))
         .with_state(pool);
 
     let bind_addr = env::var("BIND_URL").unwrap_or("127.0.0.1:3000".to_owned());

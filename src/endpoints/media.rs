@@ -10,9 +10,9 @@ use rand::distributions::{Alphanumeric, DistString};
 use tracing::debug;
 
 use crate::{
-    models::{CreateMedia, Media, User},
-    schema::{media, users},
-    utils::{ConnectionPool, Error, Response},
+    models::{CreateMedia, Media},
+    schema::media,
+    utils::{authorize_and_return_user, ConnectionPool, Error, Response},
 };
 
 pub async fn upload(
@@ -25,19 +25,7 @@ pub async fn upload(
         .await
         .map_err(|err| Error::InternalError(err.to_string()))?;
 
-    let matched_user: Option<User> = users::table
-        .filter(users::access_key.eq(auth.0.token()))
-        .first(&mut conn)
-        .await
-        .optional()
-        .map_err(|err| Error::InternalError(err.to_string()))?;
-
-    if matched_user.is_none() {
-        return Err(Error::Unauthorized(
-            "authorization key is invalid.".to_owned(),
-        ));
-    }
-    let user = matched_user.unwrap();
+    let user = authorize_and_return_user(&mut conn, auth.0.token()).await?;
 
     while let Some(field) = multipart.next_field().await.unwrap() {
         if let Some("file") = field.name() {
@@ -128,19 +116,7 @@ pub async fn delete_image(
         .await
         .map_err(|err| Error::InternalError(err.to_string()))?;
 
-    let matched_user: Option<User> = users::table
-        .filter(users::access_key.eq(auth.0.token()))
-        .first(&mut conn)
-        .await
-        .optional()
-        .map_err(|err| Error::InternalError(err.to_string()))?;
-
-    if matched_user.is_none() {
-        return Err(Error::Unauthorized(
-            "authorization key is invalid.".to_owned(),
-        ));
-    }
-    let user = matched_user.unwrap();
+    let user = authorize_and_return_user(&mut conn, auth.0.token()).await?;
 
     let matched_image: Option<Media> = media::table
         .filter(media::file_name.eq(&name))
