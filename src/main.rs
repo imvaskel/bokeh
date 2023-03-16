@@ -60,7 +60,7 @@ async fn main() {
 
     let bind_addr = env::var("BIND_URL").unwrap_or("127.0.0.1:3000".to_owned());
 
-    info!("running bokeh on bind url `{}`", &bind_addr);
+    info!("running bokeh on bind url `http://{}`", &bind_addr);
 
     axum::Server::bind(&bind_addr.parse().unwrap())
         .serve(app.into_make_service())
