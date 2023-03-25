@@ -4,7 +4,7 @@ Bokeh (name pending) is an image server written in rust. It's just a little pet 
 
 ## Installation
 
-Run cargo build --release and use the compiled binary. To compile diesel you will need the postgres lib headers.
+Run ``cargo build --release`` and use the compiled binary. To compile diesel you will need the postgres lib headers.
 By default, diesel will run any applicable migrations on each run, so you do not need anything else.
 
 ## Usage
