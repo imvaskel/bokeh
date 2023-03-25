@@ -1,5 +1,3 @@
-use std::env;
-
 use axum::{
     extract::{Path, State},
     headers::{authorization::Bearer, Authorization},
@@ -13,6 +11,7 @@ use tracing::debug;
 use uuid;
 
 use crate::{
+    config::Config,
     models::{CreateUser, User},
     schema::media,
     utils::{authorize_and_return_user, ConnectionPool, Error, Response},
@@ -31,15 +30,14 @@ pub async fn register_user(
     Json(data): Json<UserRegisterData>,
 ) -> Result<Json<Response>, Error> {
     use crate::schema::users::dsl::*;
+    let config = Config::get();
 
     let mut conn = pool
         .get()
         .await
         .map_err(|err| Error::InternalError(err.to_string()))?;
 
-    let invite_key = env::var("INVITE_KEY").map_err(|err| Error::InternalError(err.to_string()))?;
-
-    if data.key != invite_key {
+    if data.key != config.invite_key {
         return Err(Error::Unauthorized("invite key was invalid.".to_owned()));
     }
 
@@ -49,7 +47,7 @@ pub async fn register_user(
         access_key: &user_access_key,
     };
 
-    debug!("registering user with username {}", &data.username);
+    tracing::debug!("registering user with username {}", &data.username);
 
     insert_into(users)
         .values(&data)
@@ -96,9 +94,10 @@ pub async fn delete_user_by_id(
         ));
     }
 
-    debug!(
+    tracing::debug!(
         "admin {} initiated a drop of user {} and their media from the database.",
-        &self_user.id, &uid
+        &self_user.id,
+        &uid
     );
 
     // first delete the users media, then delete the user

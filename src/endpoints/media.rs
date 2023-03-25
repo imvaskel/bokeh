@@ -7,7 +7,6 @@ use axum::{
 use diesel::{insert_into, prelude::*};
 use diesel_async::RunQueryDsl;
 use rand::distributions::{Alphanumeric, DistString};
-use tracing::debug;
 
 use crate::{
     models::{CreateMedia, Media},
@@ -44,7 +43,7 @@ pub async fn upload(
             let extension = mime.extension();
             let formatted_name = format!("{file_name}.{extension}");
 
-            debug!(
+            tracing::debug!(
                 "user {} created new media with filename {} and with bytes len {}",
                 &user.id,
                 &formatted_name,
@@ -99,7 +98,7 @@ pub async fn get_image(
     }
 
     let image = image.unwrap();
-    debug!("media {} was viewed.", &image.file_name);
+    tracing::debug!("media {} was viewed.", &image.file_name);
     Ok(response::Response::builder()
         .header("Content-Type", image.mime_type)
         .body(Full::from(image.content))
@@ -136,9 +135,10 @@ pub async fn delete_image(
         ));
     }
 
-    debug!(
+    tracing::debug!(
         "image {} was deleted by user {}",
-        &image.file_name, &user.id
+        &image.file_name,
+        &user.id
     );
 
     diesel::delete(media::table.filter(media::file_name.eq(&name)))

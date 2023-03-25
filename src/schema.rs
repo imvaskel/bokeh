@@ -22,7 +22,4 @@ diesel::table! {
 
 diesel::joinable!(media -> users (user_id));
 
-diesel::allow_tables_to_appear_in_same_query!(
-    media,
-    users,
-);
+diesel::allow_tables_to_appear_in_same_query!(media, users,);
