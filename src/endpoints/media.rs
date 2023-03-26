@@ -140,7 +140,7 @@ pub async fn get_image_embed(
             <meta property="og:image" content="{url}/media/{image}" />
             <meta property="og:url" content="{url}" />
             <meta property="og:type" content="object" />
-            <meta name="description" content="Uploaded @ {time}"
+            <meta name="description" content="Uploaded @ {time}" />
 
             <meta name="twitter:image:src" content="{url}" />
             <meta name="twitter:description" content="Uploaded @ {time}" />
