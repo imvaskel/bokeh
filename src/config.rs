@@ -5,6 +5,7 @@ pub struct Config {
     pub bind_addr: std::net::SocketAddr,
     pub invite_key: String,
     pub database_url: String,
+    pub base_url: String
 }
 
 impl Config {

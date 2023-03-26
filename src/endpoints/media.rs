@@ -2,13 +2,15 @@ use axum::{
     body::{Bytes, Full},
     extract::{Multipart, Path, State},
     headers::{authorization::Bearer, Authorization},
-    response, Json, TypedHeader,
+    response::{self, Html},
+    Json, TypedHeader,
 };
 use diesel::{insert_into, prelude::*};
 use diesel_async::RunQueryDsl;
 use rand::distributions::{Alphanumeric, DistString};
 
 use crate::{
+    config::Config,
     models::{CreateMedia, Media},
     schema::media,
     utils::{authorize_and_return_user, ConnectionPool, Error, Response},
@@ -103,6 +105,52 @@ pub async fn get_image(
         .header("Content-Type", image.mime_type)
         .body(Full::from(image.content))
         .unwrap())
+}
+
+// Get the image in embed form for discord.
+pub async fn get_image_embed(
+    State(pool): State<ConnectionPool>,
+    Path(name): Path<String>,
+) -> Result<Html<String>, Error> {
+    use crate::schema::media::dsl::*;
+
+    let mut conn = pool
+        .get()
+        .await
+        .map_err(|err| Error::InternalError(err.to_string()))?;
+
+    let matched_image: Option<Media> = media
+        .filter(file_name.eq(name))
+        .first(&mut conn)
+        .await
+        .optional()
+        .map_err(|err| Error::InternalError(err.to_string()))?;
+
+    let image = matched_image;
+    if image.is_none() {
+        return Err(Error::NotFound);
+    }
+
+    let image = image.unwrap();
+    tracing::debug!("media {} was viewed in embed.", &image.file_name);
+
+    Ok(Html(format!(
+        r#"
+        <head>
+            <meta property="og:image" content="{url}/media/{image}" />
+            <meta property="og:url" content="{url}" />
+            <meta property="og:type" content="object" />
+            <meta name="description" content="Uploaded @ {time}"
+
+            <meta name="twitter:image:src" content="{url}" />
+            <meta name="twitter:description" content="Uploaded @ {time}" />
+            <meta name="twitter:card" content="summary_large_image" />
+        </head>
+    "#,
+        url = Config::get().base_url,
+        image = image.file_name,
+        time = image.created_at
+    )))
 }
 
 pub async fn delete_image(

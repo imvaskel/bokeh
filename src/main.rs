@@ -40,6 +40,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/media/upload", post(endpoints::media::upload))
+        .route("/media/:name/embed", get(endpoints::media::get_image_embed))
         .route("/media/:name", get(endpoints::media::get_image))
         .route(
             "/media/delete/:name",

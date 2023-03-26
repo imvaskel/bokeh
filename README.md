@@ -1,6 +1,6 @@
 # Bokeh
 
-Bokeh (name pending) is an image server written in rust. It's just a little pet project of mine.
+Bokeh is an image/media server written in rust. It's just a little pet project of mine.
 
 ## Installation
 
@@ -15,9 +15,10 @@ Run the compiled binary. You can optionally provide a path to your config if you
 
 Create a file named ``config.toml`` (default name) and fill it out with the content:
 ```toml
-database_url=""
-invite_key=""
-bind_addr=""
+database_url="" # the postgres connection url
+invite_key="" # the key to check against when registering users
+bind_addr="" # the address to bind to, i.e 127.0.0.1:3545
+base_url="" # the url to use for the og:x properties
 ```
 
 ## Contributing
