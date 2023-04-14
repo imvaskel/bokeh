@@ -53,6 +53,8 @@ pub async fn authorize_and_return_user(
         .optional()
         .map_err(|err| Error::InternalError(err.to_string()))?;
 
+    tracing::debug!("authorizing user {:?}", &user);
+
     match user {
         Some(u) => Ok(u),
         None => Err(Error::Unauthorized(

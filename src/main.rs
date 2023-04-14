@@ -1,6 +1,7 @@
 use axum::{
     routing::{delete, get, post},
     Router,
+    extract::{DefaultBodyLimit}
 };
 use diesel_async::{
     pooled_connection::{bb8::Pool, AsyncDieselConnectionManager},
@@ -58,6 +59,8 @@ async fn main() {
             TraceLayer::new_for_http()
                 .make_span_with(DefaultMakeSpan::default().include_headers(true)),
         )
+        // Limit body to 1gb (1 billion bytes).
+        .layer(DefaultBodyLimit::max(1_000_000_000))
         .with_state(pool);
 
     tracing::info!("running bokeh on bind url `http://{}`", &config.bind_addr);
