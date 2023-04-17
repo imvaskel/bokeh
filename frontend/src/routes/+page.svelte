@@ -6,9 +6,9 @@
 		hostname = window.location.hostname;
 	}
 
-	let errorText = 'f';
+	let errorText = '';
 	let fileName = '';
-	let mediaHref = 'f';
+	let mediaHref = '';
 	let hovering = false;
 
 	function forwardRefClick() {
@@ -190,21 +190,23 @@
 		gap: 1em;
 	}
 
-	.form-footer-wrapper input {
-		all: inherit;
+	.form-footer-wrapper input[type="text"] {
 		background-color: rgba(255, 255, 255, 0.15);
 		border-radius: 16px;
-		padding: 0.5em 0.5em;
+		padding: 0.4em;
 		border-color: rgba(255, 255, 255, 0.2);
+		border: none;
+		color: white;
 	}
 
 	.form-footer-wrapper button {
-		all: inherit;
 		background-color: #90705c;
 		display: flex;
-		padding: 0.5em;
+		padding: 0.5em 1.5em;
 		border-radius: 16px;
 		cursor: pointer;
+		border: none;
+		color: white;
 	}
 
 	.file-upload::file-selector-button {
