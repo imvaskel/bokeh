@@ -9,6 +9,29 @@ By default, diesel will run any applicable migrations on each run, so you do not
 
 ## Usage
 
+### Docker
+
+The only officially supported method of running via docker is via `docker compose`.
+Echo the following into `.env` in the source directory:
+```env
+POSTGRES_PASSWORD=<pw>
+POSTGRES_USER=<user>
+POSTGRES_DB=<user>
+```
+
+Then run ``docker compose up``. Note that by default the binds caddy (the webserver that handles proxying to containers) to
+port ``9863``.
+
+
+### Manually
+
+#### Frontend
+
+Change to the frontend directory and run ``yarn install``, then ``yarn build``, then to run the webserver run ``node build``
+in the frontend/ directory.
+
+#### Backend
+
 Run the compiled binary. You can optionally provide a path to your config if you'd like, like ``bokeh <path/to/config>``
 
 ## Configuration

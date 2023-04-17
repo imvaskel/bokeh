@@ -1,0 +1,6 @@
+http:// {
+        reverse_proxy /media/* backend:9863
+        reverse_proxy /admin/api/* backend:9863
+        reverse_proxy /user/* backend:9863
+        reverse_proxy * frontend:3000
+}

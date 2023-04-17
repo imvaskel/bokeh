@@ -1,0 +1,45 @@
+# Comments are provided throughout this file to help you get started.
+# If you need more help, visit the Docker compose reference guide at
+# https://docs.docker.com/compose/compose-file/
+
+# Here the instructions define your application as a service called "app".
+# This service is built from the Dockerfile in the current directory.
+# You can add other services your application may depend on here, such as a
+# database or a cache. For examples, see the Awesome Compose repository:
+# https://github.com/docker/awesome-compose
+services:
+  backend:
+    build:
+      context: .
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./config.toml:/usr/src/app/config.toml
+  frontend:
+    build:
+      context: frontend/
+  db:
+    image: postgres
+    restart: always
+    user: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    env_file:
+      - ./.env
+    expose:
+      - 5432
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - "9863:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+volumes:
+  db-data:
