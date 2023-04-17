@@ -1,11 +1,14 @@
 <script lang="ts">
-	import Modal from '$lib/components/Modal.svelte';
-	import { element } from 'svelte/internal';
+	import { browser } from '$app/environment';
 
-	let showErrorModal = false;
-	let showModal = false;
+	let hostname = '';
+	if (browser) {
+		hostname = window.location.hostname;
+	}
+
+	let errorText = 'f';
 	let fileName = '';
-	let mediaHref = '';
+	let mediaHref = 'f';
 	let hovering = false;
 
 	function forwardRefClick() {
@@ -24,18 +27,6 @@
 		}
 	}
 
-	function handleDragOver(ev: Event) {
-		let elem = ev.target as HTMLDivElement
-		if (!hovering) {
-			elem.style.backgroundColor = "rgba(255, 255, 255, 0.2)"
-			hovering = !hovering
-		}
-		else {
-			elem.style.backgroundColor = "rgba(255, 255, 255, 0.15)"
-			hovering = !hovering
-		}
-	}
-
 	function handleFileChange(ev: Event) {
 		const input = ev.target as HTMLInputElement;
 		if (input.files && input.files.length > 0) {
@@ -45,14 +36,14 @@
 	}
 
 	async function handleSubmit(e: SubmitEvent) {
+		errorText = '';
+		mediaHref = '';
 		const data = new FormData(e.target as HTMLFormElement);
 		const key = data.get('key');
 		data.delete('key');
 
 		if (!key) {
-			let textLabel = document.getElementById('error-modal-text') as HTMLParagraphElement;
-			textLabel!!.innerText = `You must enter a key.`;
-			showErrorModal = true;
+			errorText = `You must enter a key.`;
 			return;
 		}
 
@@ -67,17 +58,12 @@
 			const json = await res.json();
 			if (res.status === 401) {
 				// Oops! Unauthorized.
-				let textLabel = document.getElementById('error-modal-text') as HTMLParagraphElement;
-				textLabel!!.innerText = `An error occurred when submitting: ${json.msg}`;
-				showErrorModal = true;
+				errorText = `An error occurred when submitting: ${json.msg}`;
 			} else {
 				mediaHref = `/media/${json.msg}`;
-				showModal = true;
 			}
 		} catch (e) {
-			let textLabel = document.getElementById('error-modal-text') as HTMLParagraphElement;
-			textLabel!!.innerText = `An error occurred when submitting: ${e}`;
-			showErrorModal = true;
+			errorText = `An error occurred when submitting: ${e}`;
 		}
 	}
 </script>
@@ -90,10 +76,11 @@
 		<form on:submit|preventDefault={handleSubmit}>
 			<!-- svelte-ignore a11y-click-events-have-key-events -->
 			<div
-				class="file-upload-wrapper"
+				class="file-upload-wrapper {hovering ? 'file-upload-wrapper-hover' : ''}"
 				on:click={forwardRefClick}
-				on:dragenter={handleDragOver}
-				on:dragleave={handleDragOver}
+				on:dragenter|preventDefault={() => (hovering = !hovering)}
+				on:dragleave|preventDefault={() => (hovering = !hovering)}
+				on:dragover|preventDefault
 				on:drop|preventDefault|stopPropagation={forwardDropHandler}
 			>
 				<label for="file">
@@ -112,24 +99,30 @@
 		</form>
 	</div>
 	{#if mediaHref}
-		<a href={mediaHref} class="card output-link"> Link </a>
+		<div class="card success-card">
+			<h2>Success!</h2>
+			<p class="card-text">Your image URL is ready.</p>
+			<a href={mediaHref} class="unstyled-anchor">{hostname}{mediaHref}</a>
+		</div>
+	{/if}
+
+	{#if errorText}
+		<div class="card error-card">
+			<h2>Error!</h2>
+			<p class="card-text">{errorText}</p>
+		</div>
 	{/if}
 </div>
-
-<Modal bind:showModal={showErrorModal} id="error-modal">
-	<h1 slot="header">Error!</h1>
-
-	<p id="error-modal-text" />
-</Modal>
 
 <style>
 	.upload-container {
 		display: flex;
-		height: 75vh;
-		align-items: center;
+		align-items: stretch;
 		justify-content: center;
 		flex-direction: column;
-		gap: 8em;
+		gap: 6em;
+		width: 20em;
+		margin: 5em auto;
 	}
 
 	.card {
@@ -140,7 +133,23 @@
 		justify-content: center;
 		padding: 2em 2em;
 		border-radius: 20px;
-		width: 16em;
+	}
+
+	.card-text {
+		color: rgba(255, 255, 255, 0.8);
+	}
+
+	.success-card {
+		background-color: #498c50;
+		padding: 1em 2em;
+		font-size: small;
+		gap: 0.1rem;
+	}
+
+	.error-card {
+		background-color: #8b2635;
+		font-size: small;
+		gap: 0.1rem;
 	}
 
 	.card form {
@@ -150,7 +159,6 @@
 	}
 
 	.file-upload-wrapper {
-		all: inherit;
 		height: 8em;
 		background-color: rgba(255, 255, 255, 0.15);
 		border-radius: 16px;
@@ -195,7 +203,7 @@
 		background-color: #90705c;
 		display: flex;
 		padding: 0.5em;
-		border-radius: 0.5em;
+		border-radius: 16px;
 		cursor: pointer;
 	}
 
@@ -203,9 +211,13 @@
 		display: none;
 	}
 
-	.output-link {
-		color: #b4e7ce;
+	.unstyled-anchor {
 		text-decoration: none;
+		color: inherit;
+	}
+
+	.unstyled-anchor:visited {
+		color: inherit;
 	}
 
 	@media screen and (min-width: 800px) {
@@ -214,7 +226,9 @@
 		}
 	}
 
-	:global(dialog#error-modal) {
-		background-color: #8b2635;
+	:global(body) {
+		background-color: #122d35;
+		color: white;
+		font-family: sans-serif;
 	}
 </style>
