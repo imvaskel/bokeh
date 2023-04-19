@@ -1,0 +1,49 @@
+.text_input {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 0.4em;
+  border-color: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+}
+
+.card form {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.submit_button {
+  background-color: #90705c;
+  padding: 0.5em 1.5em;
+  border-radius: 16px;
+  cursor: pointer;
+  border: none;
+  color: white;
+  text-align: center;
+  margin-top: 0.5em;
+  box-sizing: content-box;
+}
+
+.success_text {
+  word-break: break-all;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.register_container {
+  composes: upload_container from "../page.module.css";
+}
+
+.card {
+  composes: card from "../page.module.css";
+  gap: 2em;
+}
+
+.error_card {
+  composes: error_card from "../page.module.css";
+}
+
+.success_card {
+  composes: success_card from "../page.module.css";
+  gap: 1em;
+}
