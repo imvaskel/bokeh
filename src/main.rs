@@ -47,14 +47,14 @@ async fn main() {
             "/media/delete/:name",
             delete(endpoints::media::delete_image),
         )
-        .route("/user/register", post(endpoints::user::register_user))
+        .route("/api/user/register", post(endpoints::user::register_user))
         .route(
-            "/user/delete/:user",
+            "/api/user/delete/:user",
             delete(endpoints::user::delete_user_by_id),
         )
-        .route("/user/delete/", delete(endpoints::user::delete_user_self))
-        .route("/admin/users", get(endpoints::admin::get_all_users))
-        .route("/admin/media", get(endpoints::admin::get_all_media_info))
+        .route("/api/user/delete/", delete(endpoints::user::delete_user_self))
+        .route("/api/admin/users", get(endpoints::admin::get_all_users))
+        .route("/api/admin/media", get(endpoints::admin::get_all_media_info))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(DefaultMakeSpan::default().include_headers(true)),
